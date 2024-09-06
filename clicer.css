@@ -19,7 +19,7 @@ body, html {
     font-size: 24px;
     text-align: center;
     margin-top: 20px; 
-    margin-left: 45px;
+    margin-left: 65px;
 }
 
 .coin-block img {
@@ -29,6 +29,8 @@ body, html {
     display: flex;
     align-items: center;
     justify-content: center;
+    outline: none;
+    -webkit-tap-highlight-color: transparent
 }
 
 .coin-block {
