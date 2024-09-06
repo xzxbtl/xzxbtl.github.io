@@ -1,22 +1,8 @@
 let tg = window.Telegram.WebApp;
 
-tg.isExpanded = true;
+tg.expand()
 tg.headerColor = "#615b5b";
 alert(tg.initData)
-
-Ttg.ready().then(() => {
-    Telegram.WebApp.expand(); 
-
-    Telegram.WebApp.setHeaderColor("#293133"); 
-
-    Telegram.WebApp.UserInfo.get().then(userData => {
-        console.log("Информация о пользователе:", userData);
-
-        // Используйте информацию о пользователе здесь
-        // Например, выводите имя пользователя:
-        document.write("Привет, " + userData.username + "!");
-    });
-});
 
 const image = document.getElementById("coin");
 let scoreElement = document.getElementById("score"); 
