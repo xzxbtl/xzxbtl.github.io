@@ -2,7 +2,7 @@ let tg = window.Telegram.WebApp;
 
 tg.isExpanded = true;
 tg.headerColor = "#615b5b";
-console.log(tg.initData)
+alert(tg.initData)
 
 Ttg.ready().then(() => {
     Telegram.WebApp.expand(); 
