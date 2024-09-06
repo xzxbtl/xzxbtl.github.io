@@ -1,7 +1,7 @@
 let tg = window.Telegram.WebApp;
 
 tg.expand()
-tg.headerColor = "#615b5b";
+tg.headerColor = "#17212b";
 alert(tg.initData)
 
 const image = document.getElementById("coin");
