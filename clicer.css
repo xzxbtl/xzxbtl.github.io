@@ -19,7 +19,7 @@ body, html {
     font-size: 24px;
     text-align: center;
     margin-top: 20px; 
-    margin-left: 20px;
+    margin-left: 35px;
 }
 
 .coin-block img {
@@ -42,7 +42,7 @@ body, html {
     animation-duration: 3s;
     animation-iteration-count: infinite;
     animation-timing-function: linear;
-    margin-right: 20px;
+    margin-right: 35px;
 }
 
 @keyframes jump {
