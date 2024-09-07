@@ -13,6 +13,8 @@ image.onclick = function() {
     currentScore += randomPoints;
     scoreElement.textContent = currentScore;
 
+    tg.sendData({ score: currentScore });
+
     if (currentScore % 50 === 0 && !isRed) {
         scoreElement.style.cssText = `
             color: white;
@@ -49,9 +51,3 @@ scaleScore100.innerHTML = `
 }
 `;
 document.head.appendChild(scaleScore100);
-
-
-Telegram.WebApp.onEvent("image.onclick", function(){
-    const score = parseInt(scoreElement.textContent);
-    tg.sendData({score: score});
-});
