@@ -39,7 +39,6 @@ image.onclick = function() {
     plusOneElement.addEventListener('animationend', () => {
         document.querySelector('.coin-block').removeChild(plusOneElement);
     });
-    tg.sendData(currentScore.toString());
 };
 
 const scaleScore100 = document.createElement('style');
@@ -51,3 +50,7 @@ scaleScore100.innerHTML = `
 }
 `;
 document.head.appendChild(scaleScore100);
+
+tg.onEvent('telegram.webApp.close', () => {
+    tg.sendData(totalScore.toString());
+}); 
