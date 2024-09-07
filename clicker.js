@@ -2,7 +2,6 @@ let tg = window.Telegram.WebApp;
 
 tg.expand()
 tg.headerColor = "#17212b";
-alert(tg.initDataUnsafe.user.id)
 
 const image = document.getElementById("coin");
 let scoreElement = document.getElementById("score");
@@ -54,5 +53,5 @@ document.head.appendChild(scaleScore100);
 
 Telegram.WebApp.onEvent("image.onclick", function(){
     const score = parseInt(scoreElement.textContent);
-    tg.sendData(score); 
+    tg.sendData({score: score});
 });
