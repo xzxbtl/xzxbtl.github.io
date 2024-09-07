@@ -56,5 +56,5 @@ scaleScore100.innerHTML = `
 document.head.appendChild(scaleScore100);
 
 Telegram.WebApp.onEvent("mainButtonClicked", function(){
-    tg.sendData(scoreElement);
+    tg.sendData(currentScore.toString());
 });
