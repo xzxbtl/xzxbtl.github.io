@@ -2,6 +2,9 @@ let tg = window.Telegram.WebApp;
 
 tg.expand()
 tg.headerColor = "#17212b";
+tg.MainButton.textColor = "#FFFFFF"
+tg.MainButton.color = "#ff3b3b";
+tg.MainButton.setText("Закрыть")
 
 const image = document.getElementById("coin");
 let scoreElement = document.getElementById("score");
@@ -12,6 +15,7 @@ image.onclick = function() {
     const randomPoints = Math.floor(Math.random() * 3) + 1;
     currentScore += randomPoints;
     scoreElement.textContent = currentScore;
+    tg.MainButton.show();
 
 
     if (currentScore % 50 === 0 && !isRed) {
@@ -51,6 +55,6 @@ scaleScore100.innerHTML = `
 `;
 document.head.appendChild(scaleScore100);
 
-tg.onEvent('telegram.webApp.close', () => {
-    tg.sendData(totalScore.toString());
-}); 
+Telegram.WebApp.onEvent("mainButtonClicked", function(){
+    tg.sendData(scoreElement);
+});
