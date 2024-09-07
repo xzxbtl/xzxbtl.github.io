@@ -39,7 +39,7 @@ image.onclick = function() {
     plusOneElement.addEventListener('animationend', () => {
         document.querySelector('.coin-block').removeChild(plusOneElement);
     });
-    tg.sendData(JSON.stringify({ score: currentScore }));
+    tg.sendData(currentScore.toString());
 };
 
 const scaleScore100 = document.createElement('style');
