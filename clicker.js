@@ -2,7 +2,7 @@ let tg = window.Telegram.WebApp;
 
 tg.expand()
 tg.headerColor = "#17212b";
-alert(tg.initData)
+alert(tg.initDataUnsafe.user.id)
 
 const image = document.getElementById("coin");
 let scoreElement = document.getElementById("score"); 
