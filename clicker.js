@@ -13,7 +13,6 @@ image.onclick = function() {
     currentScore += randomPoints;
     scoreElement.textContent = currentScore;
 
-    tg.sendData({ score: currentScore });
 
     if (currentScore % 50 === 0 && !isRed) {
         scoreElement.style.cssText = `
@@ -40,6 +39,10 @@ image.onclick = function() {
     plusOneElement.addEventListener('animationend', () => {
         document.querySelector('.coin-block').removeChild(plusOneElement);
     });
+    let data = {
+        score: currentScore
+    };
+    tg.sendData(JSON.stringify(data))
 };
 
 const scaleScore100 = document.createElement('style');
