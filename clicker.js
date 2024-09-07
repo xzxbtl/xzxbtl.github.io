@@ -5,15 +5,16 @@ tg.headerColor = "#17212b";
 alert(tg.initDataUnsafe.user.id)
 
 const image = document.getElementById("coin");
-let scoreElement = document.getElementById("score"); 
+let scoreElement = document.getElementById("score");
 let isRed = false;
 
 image.onclick = function() {
     let currentScore = parseInt(scoreElement.textContent);
-    currentScore += 1;
+    const randomPoints = Math.floor(Math.random() * 3) + 1;
+    currentScore += randomPoints;
     scoreElement.textContent = currentScore;
 
-    if (currentScore % 20 === 0 && !isRed) {
+    if (currentScore % 50 === 0 && !isRed) {
         scoreElement.style.cssText = `
             color: white;
             animation: scaleScore100 1.5s ease-out; 
@@ -27,7 +28,7 @@ image.onclick = function() {
     }
 
     const plusOneElement = document.createElement('span');
-    plusOneElement.textContent = '+1';
+    plusOneElement.textContent = `+${randomPoints}`;
     plusOneElement.classList.add('plus-one');
 
     const position = Math.random() < 0.5 ? 'top' : 'bottom';
@@ -49,3 +50,9 @@ scaleScore100.innerHTML = `
 }
 `;
 document.head.appendChild(scaleScore100);
+
+
+Telegram.WebApp.onEvent("image.onclick", function(){
+    const score = parseInt(scoreElement.textContent);
+    tg.sendData(score); 
+});
