@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <link rel="stylesheet" href="/static/css/video_templates.css">
+  <script src="/static/js/video_templates.js" defer></script>
+  <title>Template Manager</title>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="header-title">📂 Управление шаблонами</div>
+  <div class="counter-box">
+    <div class="counter">
+      📦 Всего шаблонов: <span id="totalCount">0</span>
+    </div>
+  </div>
+</div>
+
+<div class="container">
+
+  <!-- ACTION BUTTONS -->
+  <div class="actions">
+    <button onclick="openModal('common')">📁 Общий шаблон</button>
+    <button onclick="openModal('tiktok')">🎵 TikTok шаблон</button>
+    <button onclick="openModal('youtube')">▶️ YouTube шаблон</button>
+  </div>
+
+  <!-- TEMPLATE LIST -->
+  <div id="templateList"></div>
+  <div id="emptyState" class="empty">Шаблонов пока нет. Создайте первый 👆</div>
+</div>
+
+<!-- CREATE / EDIT MODAL -->
+<div class="modal-backdrop" id="modalBackdrop">
+  <div class="modal">
+
+    <h2 id="modalTitle"></h2>
+    <div class="modal-subtitle" id="modalSubtitle"></div>
+
+    <div class="modal-body">
+      <!-- Base fields -->
+      <div class="modal-row"><label>Название</label><input id="m_title"></div>
+      <div class="modal-row"><label>Описание</label><textarea id="m_desc"></textarea></div>
+      <div class="modal-row"><label>Теги</label><input id="m_tags" placeholder="tag1, tag2"></div>
+      <div class="modal-row"><label>Язык</label><input id="m_language" value="ru"></div>
+      <div class="modal-row"><label>Дата публикации</label><input id="m_schedule" type="datetime-local"></div>
+
+      <div class="modal-row">
+        <label>Видимость</label>
+        <select id="m_visibility">
+          <option value="public">public</option>
+          <option value="private">private</option>
+          <option value="friends">friends</option>
+        </select>
+      </div>
+
+      <div class="modal-row inline-check">
+        <input type="checkbox" id="m_allow_comments" checked>
+        <label for="m_allow_comments">Комментарии</label>
+      </div>
+
+      <div class="modal-row inline-check">
+        <input type="checkbox" id="m_allow_duet" checked>
+        <label for="m_allow_duet">Duet / Remix</label>
+      </div>
+
+      <!-- TikTok -->
+      <div id="tiktokExtra" style="display:none;">
+        <h3 style="font-size:14px; margin-top: 10px;">TikTok</h3>
+        <div class="modal-row"><label>Sound ID</label><input id="tt_sound"></div>
+        <div class="modal-row"><label>Кадр обложки</label><input id="tt_cover" type="number" step="0.1"></div>
+        <div class="modal-row inline-check"><input id="tt_captions" type="checkbox" checked><label>Авто-субтитры</label></div>
+        <div class="modal-row"><label>Категория</label><input id="tt_category"></div>
+      </div>
+
+      <!-- YouTube -->
+      <div id="youtubeExtra" style="display:none;">
+        <h3 style="font-size:14px; margin-top: 10px;">YouTube</h3>
+
+        <div class="modal-row"><label>Category ID</label><input id="yt_category" type="number" value="22"></div>
+
+        <div class="modal-row">
+          <label>Приватность</label>
+            <select id="yt_privacy">
+            <option>public</option>
+            <option>unlisted</option>
+            <option>private</option>
+          </select>
+        </div>
+
+        <div class="modal-row inline-check">
+          <input id="yt_kids" type="checkbox">
+          <label>Видео для детей</label>
+        </div>
+
+        <div class="modal-row">
+          <label>Лицензия</label>
+          <select id="yt_license">
+            <option>youtube</option>
+            <option>creativeCommon</option>
+          </select>
+        </div>
+
+        <div class="modal-row inline-check">
+          <input id="yt_embed" type="checkbox" checked>
+          <label>Разрешить встраивание</label>
+        </div>
+
+        <div class="modal-row inline-check">
+          <input id="yt_short" type="checkbox" checked>
+          <label>Опубликовать как Shorts</label>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal()">Отмена</button>
+      <button class="btn btn-primary" onclick="saveTemplate()">Сохранить</button>
+    </div>
+
+  </div>
+</div>
+
+<!-- DELETE CONFIRM MODAL -->
+<div class="modal-backdrop" id="confirmDeleteModal" style="display:none;">
+  <div class="modal" style="max-width: 420px;">
+    <h2 style="color:#f87171;">Удалить шаблон?</h2>
+    <div class="modal-subtitle">Это действие нельзя отменить.</div>
+
+    <div class="modal-footer" style="justify-content: space-between;">
+      <button class="btn btn-secondary" onclick="closeConfirmDelete()">Отмена</button>
+      <button class="btn btn-danger" onclick="confirmDelete()">Удалить</button>
+    </div>
+  </div>
+</div>
+</body>
+</html>
