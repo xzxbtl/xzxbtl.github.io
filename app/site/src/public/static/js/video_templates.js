@@ -1,5 +1,3 @@
-const USER_ID = 123456;
-
 let templates = [];
 let editIndex = null;
 let deleteIndex = null;
@@ -41,24 +39,41 @@ const youtubeExtra = document.getElementById("youtubeExtra");
 const modalTitle = document.getElementById("modalTitle");
 const modalSubtitle = document.getElementById("modalSubtitle");
 
+async function handleApiResponse(response) {
+    if (!response.ok) {
+        let msg = "Неизвестная ошибка";
+
+        try {
+            const data = await response.json();
+            msg = data.detail || data.error || JSON.stringify(data);
+        } catch (_) {}
+
+        // редирект на HTML-страницу ошибки
+        window.location.href = `/error?msg=${encodeURIComponent(msg)}`;
+        return null;
+    }
+
+    return response.json();
+}
+
 /* ========== ОТКРЫТИЕ МОДАЛКИ СОЗДАНИЯ/РЕДАКТИРОВАНИЯ ========== */
-function openModal(type) {
-  currentMode = type;
+function openModal(platform) {
+  currentMode = platform;
   editIndex = null;
 
   modalTitle.textContent =
-    type === "tiktok" ? "Добавление TikTok шаблона" :
-    type === "youtube" ? "Добавление YouTube шаблона" :
+    platform === "tiktok" ? "Добавление TikTok шаблона" :
+    platform === "youtube" ? "Добавление YouTube шаблона" :
     "Добавление общего шаблона";
 
   modalSubtitle.textContent =
-    type === "tiktok" ? "Специальные поля для TikTok Template" :
-    type === "youtube" ? "Специальные поля YouTube Template" :
+    platform === "tiktok" ? "Специальные поля для TikTok Template" :
+    platform === "youtube" ? "Специальные поля YouTube Template" :
     "Поля, доступные для любой платформы";
 
   /* Показ корректных секций */
-  tiktokExtra.style.display = type === "tiktok" ? "block" : "none";
-  youtubeExtra.style.display = type === "youtube" ? "block" : "none";
+  tiktokExtra.style.display = platform === "tiktok" ? "block" : "none";
+  youtubeExtra.style.display = platform === "youtube" ? "block" : "none";
 
   clearFields();
   modalBackdrop.style.display = "flex";
@@ -112,9 +127,9 @@ function renderTemplates() {
     const el = document.createElement("div");
     el.className = "template-item";
 
-    const typeClass =
-      t.type === "tiktok" ? "tiktok" :
-      t.type === "youtube" ? "youtube" : "common";
+  const typeClass =
+      t.platform === "tiktok" ? "tiktok" :
+      t.platform === "youtube" ? "youtube" : "common";
 
     el.innerHTML = `
       <button class="delete-btn" onclick="openConfirmDelete(${i}, event)">🗑</button>
@@ -122,8 +137,8 @@ function renderTemplates() {
       <div class="template-title">
         <span>${t.title || "Без названия"}</span>
         <span class="template-type ${typeClass}">
-          ${t.type === "tiktok" ? "TikTok" :
-            t.type === "youtube" ? "YouTube" : "Общий"}
+          ${t.platform === "tiktok" ? "TikTok" :
+            t.platform === "youtube" ? "YouTube" : "Общий"}
         </span>
       </div>
 
@@ -139,17 +154,17 @@ function renderTemplates() {
 function editTemplate(i) {
   editIndex = i;
   const t = templates[i];
-  currentMode = t.type;
+  currentMode = t.platform;
 
   modalBackdrop.style.display = "flex";
 
   modalTitle.textContent =
-    t.type === "tiktok" ? "Редактирование TikTok шаблона" :
-    t.type === "youtube" ? "Редактирование YouTube шаблона" :
+    t.platform === "tiktok" ? "Редактирование TikTok шаблона" :
+    t.platform === "youtube" ? "Редактирование YouTube шаблона" :
     "Редактирование общего шаблона";
 
-  tiktokExtra.style.display = t.type === "tiktok" ? "block" : "none";
-  youtubeExtra.style.display = t.type === "youtube" ? "block" : "none";
+  tiktokExtra.style.display = t.platform === "tiktok" ? "block" : "none";
+  youtubeExtra.style.display = t.platform === "youtube" ? "block" : "none";
 
   m_title.value = t.title;
   m_desc.value = t.description;
@@ -160,20 +175,24 @@ function editTemplate(i) {
   m_allow_duet.checked = t.allow_duet;
   m_schedule.value = t.schedule_time ? t.schedule_time.substring(0,16) : "";
 
-  if (t.type === "tiktok") {
-    tt_sound.value = t.sound_id || "";
-    tt_cover.value = t.cover_time || "";
-    tt_captions.checked = t.enable_auto_captions;
-    tt_category.value = t.category || "";
+  if (t.platform === "tiktok") {
+     const extra = t.extra || {};
+
+    tt_sound.value = extra.sound_id || "";
+    tt_cover.value = extra.cover_time || "";
+    tt_captions.checked = extra.enable_auto_captions ?? true;
+    tt_category.value = extra.category || "";
   }
 
-  if (t.type === "youtube") {
-    yt_category.value = t.category_id;
-    yt_privacy.value = t.privacy_status;
-    yt_kids.checked = t.made_for_kids;
-    yt_license.value = t.license;
-    yt_embed.checked = t.allow_embedding;
-    yt_short.checked = t.publish_as_short;
+  if (t.platform === "youtube") {
+    const extra = t.extra || {};
+
+    yt_category.value = extra.category_id ?? 22;
+    yt_privacy.value = extra.privacy_status || "public";
+    yt_kids.checked = extra.made_for_kids ?? false;
+    yt_license.value = extra.license || "youtube";
+    yt_embed.checked = extra.allow_embedding ?? true;
+    yt_short.checked = extra.publish_as_short ?? true;
   }
 }
 
@@ -198,36 +217,44 @@ function saveTemplate() {
   let payload;
 
   if (currentMode === "common") {
-    payload = { ...base, type: "common", platform: "common" };
+    payload = {
+      ...base,
+      platform: "common",
+      extra: {}
+    };
   }
 
   if (currentMode === "tiktok") {
     payload = {
       ...base,
-      type: "tiktok",
-      sound_id: tt_sound.value || null,
-      cover_time: tt_cover.value ? parseFloat(tt_cover.value) : null,
-      enable_auto_captions: tt_captions.checked,
-      category: tt_category.value || null
+      platform: "tiktok",
+      extra: {
+        sound_id: tt_sound.value || null,
+        cover_time: tt_cover.value ? parseFloat(tt_cover.value) : null,
+        enable_auto_captions: tt_captions.checked,
+        category: tt_category.value || null
+      }
     };
   }
 
   if (currentMode === "youtube") {
     payload = {
       ...base,
-      type: "youtube",
-      category_id: parseInt(yt_category.value),
-      privacy_status: yt_privacy.value,
-      made_for_kids: yt_kids.checked,
-      license: yt_license.value,
-      allow_embedding: yt_embed.checked,
-      publish_as_short: yt_short.checked
+      platform: "youtube",
+      extra: {
+        category_id: parseInt(yt_category.value),
+        privacy_status: yt_privacy.value,
+        made_for_kids: yt_kids.checked,
+        license: yt_license.value,
+        allow_embedding: yt_embed.checked,
+        publish_as_short: yt_short.checked
+      }
     };
   }
 
   const url = editIndex !== null
-    ? `/api/templates/${templates[editIndex].id}`
-    : `/api/templates`;
+    ? `/api/video/${templates[editIndex].id}?user_id=${USER_ID}`
+    : `/api/video`;
 
   const method = editIndex !== null ? "PUT" : "POST";
 
@@ -236,10 +263,13 @@ function saveTemplate() {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload)
   })
-  .then(r => r.json())
+  .then(handleApiResponse)
   .then(data => {
+    if (!data) return;
+
     if (editIndex !== null) templates[editIndex] = data;
     else templates.push(data);
+
     renderTemplates();
     closeModal();
   });
@@ -262,7 +292,8 @@ function confirmDelete() {
 
   const template = templates[deleteIndex];
 
-  fetch(`/api/templates/${template.id}`, { method: "DELETE" })
+  fetch(`/api/video/${template.id}?user_id=${USER_ID}`, { method: "DELETE" })
+    .then(handleApiResponse)
     .then(() => {
       templates.splice(deleteIndex, 1);
       renderTemplates();
@@ -272,9 +303,10 @@ function confirmDelete() {
 
 /* ========== ЗАГРУЗКА ШАБЛОНОВ ИЗ FASTAPI ========== */
 function loadTemplates() {
-  fetch(`/api/templates?user_id=${USER_ID}`)
-    .then(r => r.json())
+  fetch(`/api/video?user_id=${USER_ID}`)
+    .then(handleApiResponse)
     .then(data => {
+      if (!data) return;
       templates = data;
       renderTemplates();
     });

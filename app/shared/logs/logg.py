@@ -3,15 +3,30 @@ import logging
 import os
 from colorama import Fore, Style
 
-
 LOG_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), '')
 os.makedirs(LOG_DIR, exist_ok=True)
+
+SUCCESS_LEVEL_NUM = 25
+logging.addLevelName(SUCCESS_LEVEL_NUM, "SUCCESS")
+
+SUCCESS_LEVEL_NUM = 25
+logging.addLevelName(SUCCESS_LEVEL_NUM, "SUCCESS")
+
+
+def success(self, message, *args, **kwargs):
+    message = f"✨ {message}"
+    if self.isEnabledFor(SUCCESS_LEVEL_NUM):
+        self._log(SUCCESS_LEVEL_NUM, message, args, **kwargs)
+
+
+logging.Logger.success = success
 
 
 class ColoredFormatter(logging.Formatter):
     COLORS = {
         logging.DEBUG: Fore.BLUE,
         logging.INFO: Fore.GREEN + Style.BRIGHT,
+        SUCCESS_LEVEL_NUM: Fore.GREEN + Style.BRIGHT,
         logging.WARNING: Fore.YELLOW,
         logging.ERROR: Fore.RED,
         logging.CRITICAL: Fore.RED + Style.BRIGHT
@@ -66,7 +81,6 @@ class SensitiveFilter(logging.Filter):
 
 logger = logging.getLogger('app')
 logger.setLevel(logging.DEBUG)
-
 
 # Îáðàáîò÷èêè
 logger.addHandler(console_handler)

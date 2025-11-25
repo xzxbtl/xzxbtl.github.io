@@ -27,11 +27,13 @@ class TemplatesMenu:
         builder.row(
             InlineKeyboardButton(
                 text="🎥 Видео",
-                web_app=WebAppInfo(url=f"https://xzxbtl.github.io/miniapp?mode=video&user_id={user_id}")
+                #callback_data="test"
+                web_app=WebAppInfo(url=f"https://amicably-wonderful-cat.cloudpub.ru/miniapp?mode=video&user_id={user_id}")
             ),
             InlineKeyboardButton(
                 text="💬 Посты",
-                web_app=WebAppInfo(url=f"https://xzxbtl.github.io/miniapp?mode=posts&user_id={user_id}")
+                #callback_data="test1"
+                web_app=WebAppInfo(url=f"https://amicably-wonderful-cat.cloudpub.ru/miniapp?mode=posts&user_id={user_id}")
             )
         )
         builder.row(

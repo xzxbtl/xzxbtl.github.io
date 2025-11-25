@@ -1,13 +1,14 @@
 import asyncio
 import os
 import sys
+from contextlib import asynccontextmanager
 from datetime import datetime, timedelta
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine, AsyncSession
-from sqlalchemy.orm import selectinload
+from sqlalchemy.orm import selectinload, joinedload
 
 from app.shared.database.config import get_settings
-from app.shared.database.models import Base, User
+from app.shared.database.models import Base, User, TgGroup
 from app.shared.database.schemas import UserCreate
 from app.shared.logs.logg import logger
 
@@ -53,11 +54,16 @@ async def create_admin_user() -> bool:
             username="@qxzxbtlqq",
             balance=999999,
             admin=True,
+
             subscription_lvl=3,
             subscription_expires=datetime.utcnow() + timedelta(days=3650),
             subscription_type_days=9999,
+
             max_video_accounts=9999,
             max_tg_accounts=9999,
+
+            max_tg_templates=9999,
+            max_video_templates=9999,
         )
 
         try:
@@ -120,6 +126,63 @@ async def get_user(user_id: int):
             return None
 
 
+async def get_user_with_video_templates(user_id: int):
+    async with AsyncSessionLocal() as session:
+        result = await session.execute(
+            select(User)
+            .options(
+                selectinload(User.tiktok_accounts),
+                selectinload(User.youtube_accounts),
+                selectinload(User.video_templates),
+            )
+            .where(User.user_id == user_id)
+        )
+        return result.scalar_one_or_none()
+
+
+async def get_current_video_accounts_count(user_id: int) -> int:
+    async with AsyncSessionLocal() as session:
+        result = await session.execute(
+            select(User)
+            .options(
+                selectinload(User.tiktok_accounts),
+                selectinload(User.youtube_accounts)
+            )
+            .where(User.user_id == user_id)
+        )
+
+        user = result.scalar_one_or_none()
+        if not user:
+            return 0
+
+        return len(user.tiktok_accounts) + len(user.youtube_accounts)
+
+
+async def get_tg_groups_count(user_id: int) -> int:
+    async with AsyncSessionLocal() as session:
+        result = await session.execute(
+            select(User)
+            .options(selectinload(User.tg_groups))
+            .where(User.user_id == user_id)
+        )
+
+        user = result.scalar_one_or_none()
+        return len(user.tg_groups) if user else 0
+
+
+async def get_user_with_posts_templates(user_id: int):
+    async with AsyncSessionLocal() as session:
+        result = await session.execute(
+            select(User)
+            .options(
+                selectinload(User.tg_groups),
+                selectinload(User.posts_templates)
+            )
+            .where(User.user_id == user_id)
+        )
+        return result.scalar_one_or_none()
+
+
 async def get_current_max_videos_accounts(user_id: int) -> int:
     async with AsyncSessionLocal() as session:
         result = await session.execute(
@@ -170,6 +233,49 @@ async def get_current_max_posts_accounts(user_id: int) -> int:
         return available
 
 
+async def get_videos_accounts(user_id: int):
+    async with AsyncSessionLocal() as session:
+        result = await session.execute(
+            select(User)
+            .options(
+                selectinload(User.tiktok_accounts),
+                selectinload(User.youtube_accounts)
+            )
+            .where(User.user_id == user_id)
+        )
+        user = result.scalar_one_or_none()
+        return user.tiktok_accounts, user.youtube_accounts
+
+
+async def check_tg_groups_exist(user_id: int, channel_id: str) -> bool:
+    async with AsyncSessionLocal() as session:
+        existing = await session.execute(
+            select(TgGroup).where(
+                TgGroup.user_id == user_id,
+                TgGroup.tg_channel_id == channel_id
+            )
+        )
+        existing_account = existing.scalar_one_or_none()
+
+        if existing_account:
+            return True
+        return False
+
+
+async def add_tg_group_db(schema_obj):
+    async with AsyncSessionLocal() as session:
+        try:
+            session.add(schema_obj)
+            await session.commit()
+        except Exception as e:
+            logger.exception(f"DB saving error: {e}")
+            await session.rollback()
+            raise RuntimeError(f"Ошибка сохранения TG-группы: {e}")
+
+    return schema_obj
+
+
+@asynccontextmanager
 async def get_session():
     async with AsyncSessionLocal() as session:
         yield session

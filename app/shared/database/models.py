@@ -22,7 +22,7 @@ class User(Base):
     user_id: Mapped[int] = mapped_column(Integer, unique=True, nullable=False, index=True)
 
     username: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
-    balance: Mapped[float] = mapped_column(Integer, default=0)  # можно поменять на Float при желании
+    balance: Mapped[float] = mapped_column(Integer, default=0)
     admin: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
 
     # Подписка
@@ -30,17 +30,29 @@ class User(Base):
     subscription_expires: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
     subscription_type_days: Mapped[int] = mapped_column(Integer, default=0)
 
-    # Лимиты
-    max_video_accounts: Mapped[int] = mapped_column(Integer, default=1)
+    # Лимиты на аккаунты
+    max_video_accounts: Mapped[int] = mapped_column(Integer, default=0)
     max_tg_accounts: Mapped[int] = mapped_column(Integer, default=2)
+
+    # Лимиты на шаблоны
+    max_tg_templates: Mapped[int] = mapped_column(Integer, default=2)
+    max_video_templates: Mapped[int] = mapped_column(Integer, default=2)
 
     # Связи
     tiktok_accounts: Mapped[List["TikTokAccount"]] = relationship(
         back_populates="owner", cascade="all, delete-orphan"
     )
+
+    # Аккаунты Ютуб + клиенты для видео
+
     youtube_accounts: Mapped[List["YouTubeAccount"]] = relationship(
         back_populates="owner", cascade="all, delete-orphan"
     )
+
+    youtube_projects: Mapped[List["YouTubeProject"]] = relationship(
+        back_populates="owner", cascade="all, delete-orphan"
+    )
+
     video_templates: Mapped[List["VideoTemplate"]] = relationship(
         back_populates="owner", cascade="all, delete-orphan"
     )
@@ -77,7 +89,7 @@ class TikTokAccount(Base):
     token_expiry: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
 
     user_id: Mapped[int] = mapped_column(
-        ForeignKey("users.id", ondelete="CASCADE"),
+        ForeignKey("users.user_id", ondelete="CASCADE"),
         nullable=False,
         index=True
     )
@@ -106,7 +118,7 @@ class YouTubeAccount(Base):
     token_expiry: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
 
     user_id: Mapped[int] = mapped_column(
-        ForeignKey("users.id", ondelete="CASCADE"),
+        ForeignKey("users.user_id", ondelete="CASCADE"),
         nullable=False,
         index=True
     )
@@ -123,13 +135,13 @@ class VideoTemplate(Base):
     __tablename__ = "video_templates"
 
     id: Mapped[int] = mapped_column(primary_key=True, index=True)
-    platform: Mapped[str] = mapped_column(String(20), nullable=False)  # tiktok | youtube | common
+    platform: Mapped[str] = mapped_column(String(20), nullable=False)
 
     title: Mapped[str] = mapped_column(String(255), nullable=False)
     description: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     tags: Mapped[List[str]] = mapped_column(JSON, default=list)
     language: Mapped[str] = mapped_column(String(10), default="ru")
-    schedule_time: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
+    schedule_time: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True))
 
     allow_comments: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
     allow_duet: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
@@ -138,7 +150,7 @@ class VideoTemplate(Base):
     extra: Mapped[dict] = mapped_column(JSON, default=dict)
 
     user_id: Mapped[int] = mapped_column(
-        ForeignKey("users.id", ondelete="CASCADE"),
+        ForeignKey("users.user_id", ondelete="CASCADE"),
         nullable=False,
         index=True
     )
@@ -167,15 +179,11 @@ class TgGroup(Base):
     title: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
 
     user_id: Mapped[int] = mapped_column(
-        ForeignKey("users.id", ondelete="CASCADE"),
+        ForeignKey("users.user_id", ondelete="CASCADE"),
         nullable=False,
         index=True
     )
     owner: Mapped["User"] = relationship(back_populates="tg_groups")
-
-    posts: Mapped[List["PostsTemplate"]] = relationship(
-        back_populates="tg_group", cascade="all, delete-orphan"
-    )
 
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
 
@@ -195,26 +203,36 @@ class PostsTemplate(Base):
     media_type: Mapped[str] = mapped_column(String(50), default="text", nullable=False)
 
     buttons_json: Mapped[dict] = mapped_column(JSON, default=dict)
-    schedule_time: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
-
-    tg_group_id: Mapped[int] = mapped_column(
-        ForeignKey("tg_groups.id", ondelete="CASCADE"),
-        nullable=False,
-        index=True
-    )
-    tg_group: Mapped["TgGroup"] = relationship(back_populates="posts")
+    schedule_time: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True))
 
     user_id: Mapped[int] = mapped_column(
-        ForeignKey("users.id", ondelete="CASCADE"),
+        ForeignKey("users.user_id", ondelete="CASCADE"),
         nullable=False,
         index=True
     )
     owner: Mapped["User"] = relationship(back_populates="posts_templates")
 
-    is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
-    is_published: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime, default=datetime.utcnow, onupdate=datetime.utcnow
+    )
+
+
+class YouTubeProject(Base):
+    __tablename__ = "youtube_projects"
+
+    id: Mapped[int] = mapped_column(primary_key=True, index=True)
+
+    client_id: Mapped[str] = mapped_column(String(255), nullable=False)
+    client_secret: Mapped[str] = mapped_column(String(255), nullable=False)
+    quota: Mapped[int] = mapped_column(Integer, default=10000)
+    status: Mapped[str] = mapped_column(String(50), default="active")  # active / blocked / used
+
+    user_id: Mapped[Optional[int]] = mapped_column(Integer, ForeignKey("users.id"), nullable=True)
+    owner: Mapped[Optional["User"]] = relationship("User", back_populates="youtube_projects")
 
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
     updated_at: Mapped[datetime] = mapped_column(
         DateTime, default=datetime.utcnow, onupdate=datetime.utcnow
     )
+

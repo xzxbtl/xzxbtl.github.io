@@ -1,101 +1,133 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-    <meta charset="UTF-8" />
-    <title>Шаблоны постов</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <link rel="stylesheet" href="/static/css/posts_templates.css">
-    <script src="/static/js/video_templates.js" defer></script>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Шаблоны постов</title>
+
+  <!-- Стили -->
+  <link rel="stylesheet" href="/static/css/posts_templates.css">
+  <script src="/static/js/posts_templates.js" defer></script>
 </head>
 <body>
 
+<!-- HEADER -->
+<div class="header">
+  <div class="header-title">📝 Управление шаблонами постов</div>
+  <div class="counter-box">
+    <div class="counter">
+      📦 Всего шаблонов: <span id="totalCount">0</span>
+    </div>
+  </div>
+</div>
+
 <div class="container">
-    <h1>📝 Шаблоны постов</h1>
 
-    <!-- Список существующих шаблонов -->
-    <div id="templatesList" class="templates-list"></div>
+  <!-- КНОПКА СОЗДАНИЯ -->
+  <div class="actions">
+    <button onclick="openPostModalNew()">➕ Новый шаблон поста</button>
+  </div>
 
-    <!-- Кнопка добавления -->
-    <button class="btn-add" onclick="openCreateForm()">+ Добавить шаблон поста</button>
-
-    <!-- ФОРМА СОЗДАНИЯ/РЕДАКТИРОВАНИЯ -->
-    <div id="formArea" class="form-card" style="display:none;">
-
-        <h2 id="formTitle">Создание шаблона</h2>
-
-        <div class="form-row">
-            <label>Название</label>
-            <input id="title">
-        </div>
-
-        <div class="form-row">
-            <label>Текст поста</label>
-            <textarea id="text" rows="4"></textarea>
-        </div>
-
-        <div class="form-row">
-            <label>URL картинки (необязательно)</label>
-            <input id="image_url">
-        </div>
-
-        <div class="form-row">
-            <label>Выберите Telegram-группу</label>
-            <select id="group_select"></select>
-        </div>
-
-        <div class="form-row">
-            <label>Время публикации (необязательно)</label>
-            <input type="datetime-local" id="schedule_time">
-        </div>
-
-        <!-- КОНСТРУКТОР КНОПОК -->
-        <div class="button-constructor">
-            <h3>Inline-кнопки</h3>
-
-            <div class="form-row">
-                <label>Текст кнопки</label>
-                <input id="btn_text">
-            </div>
-
-            <div class="form-row">
-                <label>Тип</label>
-                <select id="btn_type">
-                    <option value="url">URL</option>
-                    <option value="callback">Callback Data</option>
-                </select>
-            </div>
-
-            <div class="form-row">
-                <label>Значение</label>
-                <input id="btn_value">
-            </div>
-
-            <button class="btn-small" onclick="addButton()">Добавить кнопку</button>
-            <button class="btn-small" onclick="newRow()">Новая строка</button>
-
-            <h4>Предпросмотр</h4>
-            <div id="buttonsPreview"></div>
-
-        </div>
-
-        <button class="btn-add" onclick="submitTemplate()">Сохранить</button>
-    </div>
+  <!-- СПИСОК ШАБЛОНОВ -->
+  <div id="templatesList"></div>
+  <div id="emptyState" class="empty">Шаблонов пока нет. Создайте первый 👆</div>
 </div>
 
-<!-- МОДАЛЬНОЕ ОКНО УДАЛЕНИЯ -->
-<div id="modalDelete" class="modal-bg">
-    <div class="modal">
-        <h3>Удалить шаблон?</h3>
-        <p>Это действие необратимо.</p>
+<!-- MODAL: СОЗДАНИЕ / РЕДАКТИРОВАНИЕ -->
+<div class="modal-backdrop" id="postModalBackdrop" style="display:none;">
+  <div class="modal" id="postModal">
 
-        <div class="modal-buttons">
-            <button class="btn-delete" onclick="confirmDelete()">Удалить</button>
-            <button class="btn-edit" onclick="closeDeleteModal()">Отмена</button>
-        </div>
+    <h2 id="modalTitle">Создание шаблона поста</h2>
+    <div class="modal-subtitle" id="modalSubtitle">
+      Заполните текст, картинку и при необходимости inline-кнопки.
     </div>
+
+    <div class="modal-body">
+      <!-- Название -->
+      <div class="modal-row">
+        <label for="title">Название шаблона</label>
+        <input id="title" type="text" placeholder="Например: Утренний пост">
+      </div>
+
+      <!-- Текст -->
+      <div class="modal-row">
+        <label for="text">Текст поста</label>
+        <textarea id="text" rows="4" placeholder="Текст, который уйдет в Telegram..."></textarea>
+      </div>
+
+      <!-- Картинка -->
+      <div class="modal-row">
+        <label for="image_url">URL картинки (необязательно)</label>
+        <input id="image_url" type="text" placeholder="https://example.com/image.jpg">
+      </div>
+
+      <!-- Время публикации -->
+      <div class="modal-row">
+        <label for="schedule_time">Время публикации (необязательно)</label>
+        <input id="schedule_time" type="datetime-local">
+      </div>
+
+      <hr class="divider"/>
+
+      <!-- КОНСТРУКТОР КНОПОК -->
+      <h3 style="font-size:14px; margin-bottom:8px;">Inline-кнопки</h3>
+
+      <div class="modal-row">
+        <label for="btn_text">Текст кнопки</label>
+        <input id="btn_text" type="text" placeholder="Например: Открыть сайт">
+      </div>
+
+      <div class="modal-row">
+        <label for="btn_type">Тип</label>
+        <select id="btn_type">
+          <option value="url">URL</option>
+          <option value="callback">Callback data</option>
+        </select>
+      </div>
+
+      <div class="modal-row">
+        <label for="btn_value">Значение</label>
+        <input id="btn_value" type="text" placeholder="https://... или callback_data">
+      </div>
+
+      <div class="btn-row">
+        <button type="button" class="btn btn-secondary" onclick="addButton()">Добавить кнопку</button>
+        <button type="button" class="btn btn-secondary" onclick="newRow()">Новая строка</button>
+      </div>
+
+      <div class="modal-row">
+        <label>Предпросмотр кнопок</label>
+        <div id="buttonsPreview" class="buttons-preview">
+          <div class="empty">Кнопок пока нет</div>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn btn-secondary" type="button" onclick="closePostModal()">Отмена</button>
+      <button class="btn btn-primary" type="button" onclick="submitTemplate()">Сохранить</button>
+    </div>
+
+  </div>
 </div>
 
-<script src="/static/js/posts_templates.js"></script>
+<!-- MODAL: ПОДТВЕРЖДЕНИЕ УДАЛЕНИЯ -->
+<div class="modal-backdrop" id="modalDelete" style="display:none;">
+  <div class="modal" style="max-width:420px;">
+    <h2 style="color:#f87171;">Удалить шаблон?</h2>
+    <div class="modal-subtitle">Это действие нельзя отменить.</div>
+
+    <div class="modal-footer" style="justify-content: space-between;">
+      <button class="btn btn-secondary" type="button" onclick="closeDeleteModal()">Отмена</button>
+      <button class="btn btn-danger" type="button" onclick="confirmDelete()">Удалить</button>
+    </div>
+  </div>
+</div>
+
+<script defer>
+  const USER_ID = {{ user_id }};
+</script>
 
 </body>
 </html>

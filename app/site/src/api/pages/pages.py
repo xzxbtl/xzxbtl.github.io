@@ -8,11 +8,10 @@ router = APIRouter(tags=["FrontEnd 🌐"])
 
 @router.get("/miniapp", response_class=HTMLResponse)
 async def miniapp_home(
-    request: Request,
-    mode: str = Query("video", regex="^(video|posts)$"),
-    user_id: int = Query(...)
+        request: Request,
+        mode: str = Query("video", regex="^(video|posts)$"),
+        user_id: int = Query(...)
 ):
-
     if mode == "video":
         return templates.TemplateResponse(
             "video_templates.html",
@@ -24,3 +23,11 @@ async def miniapp_home(
             "posts_templates.html",
             {"request": request, "user_id": user_id}
         )
+
+
+@router.get("/error", response_class=HTMLResponse)
+async def error_page(request: Request, msg: str = "Неизвестная ошибка"):
+    return templates.TemplateResponse(
+        "errors.html",
+        {"request": request, "message": msg}
+    )

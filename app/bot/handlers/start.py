@@ -40,12 +40,12 @@ class MainMenu:
         builder = InlineKeyboardBuilder()
 
         builder.row(
-            InlineKeyboardButton(text="🎥 Видео", callback_data="video_menu"),
-            InlineKeyboardButton(text="📝 Посты", callback_data="posts_menu"),
-            width=2
+            InlineKeyboardButton(text="💥 Запостить", callback_data="start_posting_menu")
         )
         builder.row(
             InlineKeyboardButton(text="📁 Шаблоны", callback_data="templates_menu"),
+            InlineKeyboardButton(text="👤 Аккаунты", callback_data="start_account_menu"),
+            width=2
         )
         builder.row(
             InlineKeyboardButton(text="💳 Подписка", callback_data="tarrifs_menu"),
